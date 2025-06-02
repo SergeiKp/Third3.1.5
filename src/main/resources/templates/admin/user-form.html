@@ -6,7 +6,12 @@
 </head>
 <body>
 <h1 th:text="${user.id == null ? 'Add New User' : 'Edit User'}"></h1>
-<form th:action="@{/admin/save}" th:object="${user}" method="post">
+
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Logout</button>
+</form>
+
+<form th:action="@{/admin/update}" th:object="${user}" method="post">
     <input type="hidden" th:field="*{id}" />
     <label>Username:</label>
     <input type="text" th:field="*{username}" required /><br/>
@@ -26,8 +31,10 @@
     <label>Roles:</label><br/>
     <div th:each="role : ${roles}">
         <label>
-            <input type="checkbox" th:value="${role.id}" name="roles"
-                   th:checked="${user.roles.contains(role)}"
+            <input type="checkbox"
+                   th:value="${role.id}"
+                   name="roles"
+                   th:checked="${user.roles !=null and user.roles.contains(role)}"
                    th:text="${role.name}" />
         </label><br/>
     </div>

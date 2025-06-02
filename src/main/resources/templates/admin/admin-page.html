@@ -6,6 +6,11 @@
 </head>
 <body>
 <h1>Admin Panel - User Management</h1>
+
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Logout</button>
+</form>
+
 <a href="/admin/add">Add New User</a>
 <table border="1">
     <tr>
@@ -32,3 +37,4 @@
 </table>
 </body>
 </html>
+

@@ -47,20 +47,13 @@ public class AdminController {
     @PostMapping("/save")
     public String saveUser(@ModelAttribute("user") User user,
                            @RequestParam("roles") List<Long> roleIds) {
-        Set<Role> roles = new HashSet<>();
-        for (Long roleId : roleIds) {
-            Role role = roleService.findById(roleId);
-            if (role != null) roles.add(role);
-        }
-        user.setRoles(roles);
-        userService.addUser(user);
+        userService.addUserWithRoles(user, roleIds);
         return "redirect:/admin";
     }
 
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable Long id, Model model) {
-        User user = userService.getById(id);
-        model.addAttribute("user", user);
+        model.addAttribute("user", userService.getById(id));
         model.addAttribute("roles", roleService.getRoles());
         return "admin/user-form";
     }
@@ -68,20 +61,13 @@ public class AdminController {
     @PostMapping("/update")
     public String updateUser(@ModelAttribute("user") User user,
                              @RequestParam("roles") List<Long> roleIds) {
-        Set<Role> roles = new HashSet<>();
-        for (Long roleId : roleIds) {
-            Role role = roleService.findById(roleId);
-            if (role != null) roles.add(role);
-        }
-        user.setRoles(roles);
-        userService.updateUser(user);
+        userService.updateUserWithRoles(user, roleIds);
         return "redirect:/admin";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
-        User user = userService.getById(id);
-        userService.deleteUser(user);
+        userService.deleteUser(userService.getById(id));
         return "redirect:/admin";
     }
 }

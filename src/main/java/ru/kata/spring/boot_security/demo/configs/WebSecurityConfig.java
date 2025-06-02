@@ -2,6 +2,7 @@ package ru.kata.spring.boot_security.demo.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,10 +17,11 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
     private final SuccessUserHandler successUserHandler;
     private final UserService userService;
 
-    public WebSecurityConfig(SuccessUserHandler successUserHandler, UserService userService) {
+    public WebSecurityConfig(SuccessUserHandler successUserHandler, @Lazy UserService userService) {
         this.successUserHandler = successUserHandler;
         this.userService = userService;
     }
@@ -28,21 +30,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/", "/index").permitAll()
+                .antMatchers("/login").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .formLogin().successHandler(successUserHandler)
-                .permitAll()
+                .formLogin().successHandler(successUserHandler).permitAll()
                 .and()
-                .logout()
-                .permitAll();
+                .logout().permitAll();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
-
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider daoauthenticationProvider = new DaoAuthenticationProvider();
@@ -50,7 +49,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         daoauthenticationProvider.setUserDetailsService(userService);
         return daoauthenticationProvider;
     }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
