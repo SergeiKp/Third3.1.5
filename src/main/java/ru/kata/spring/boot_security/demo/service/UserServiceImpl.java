@@ -101,9 +101,7 @@ public class UserServiceImpl implements UserService {
         userDao.updateUser(user);
     }
 
-    /**
-     * Подменяет роли на настоящие из БД по их ID.
-     */
+
     private Set<Role> resolveRoles(Set<Role> roles) {
         return roles.stream()
                 .map(r -> roleService.findById(r.getId()))

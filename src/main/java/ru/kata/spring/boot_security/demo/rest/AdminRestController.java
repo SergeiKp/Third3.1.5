@@ -33,26 +33,22 @@ public class AdminRestController {
         this.roleService = roleService;
     }
 
-    // Получить всех пользователей
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    // Получить пользователя по id
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getById(@PathVariable long id) {
         return ResponseEntity.ok(userService.getById(id));
     }
 
-    // Создать нового пользователя
     @PostMapping("/users")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         userService.addUserWithRawRoles(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    // Обновить пользователя
     @PutMapping("/users/{id}")
     public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody User user) {
         user.setId(id);
@@ -60,14 +56,12 @@ public class AdminRestController {
         return ResponseEntity.ok(user);
     }
 
-    // Удалить пользователя
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable long id) {
         userService.deleteUser(userService.getById(id));
         return ResponseEntity.noContent().build();
     }
 
-    // Получить все роли
     @GetMapping("/roles")
     public ResponseEntity<List<Role>> getAllRoles() {
         return ResponseEntity.ok(roleService.getRoles());
