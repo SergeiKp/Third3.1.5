@@ -29,26 +29,34 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .csrf().disable() // Отключаем CSRF (нужно для fetch API)
                 .authorizeRequests()
+                .antMatchers("/js/**", "/css/**").permitAll() // ️ Только статика разрешена без логина
                 .antMatchers("/login").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .formLogin().successHandler(successUserHandler).permitAll()
+                .formLogin()
+                .successHandler(successUserHandler)
+                .permitAll()
                 .and()
-                .logout().permitAll();
+                .logout()
+                .logoutUrl("/logout")
+                .permitAll();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
+
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider daoauthenticationProvider = new DaoAuthenticationProvider();
-        daoauthenticationProvider.setPasswordEncoder(passwordEncoder());
-        daoauthenticationProvider.setUserDetailsService(userService);
-        return daoauthenticationProvider;
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder());
+        provider.setUserDetailsService(userService);
+        return provider;
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
