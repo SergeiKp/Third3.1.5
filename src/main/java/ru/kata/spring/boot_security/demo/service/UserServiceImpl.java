@@ -5,14 +5,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.UserDao;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
+
 
 @Service
 @Transactional(readOnly = true)
@@ -31,6 +29,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addUser(User user) {
+        user.setRoles(roleService.resolveRoles(user.getRoles()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userDao.addUser(user);
     }
@@ -38,6 +37,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateUser(User user) {
+        user.setRoles(roleService.resolveRoles(user.getRoles()));
+
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            userDao.getById(user.getId()).ifPresent(existingUser -> user.setPassword(existingUser.getPassword()));
+        } else {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+
         userDao.updateUser(user);
     }
 
@@ -53,8 +60,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getById(long id) {
+    public Optional<User> getById(long id) {
         return userDao.getById(id);
+    }
+
+    @Override
+    public Optional<User> findUserByUsername(String username) {
+        return userDao.findByUsername(username);
     }
 
     @Override
@@ -62,51 +74,15 @@ public class UserServiceImpl implements UserService {
         return userDao.countUsers();
     }
 
-    @Override
-    public User findUserByUsername(String username) {
-        return userDao.findByUsername(username);
-    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userDao.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found: " + username);
-        }
-        // Инициализация ролей (ленивая загрузка)
-        user.getRoles().size();
-        return user;
-    }
-
-    @Override
-    @Transactional
-    public void addUserWithRawRoles(User user) {
-        user.setRoles(resolveRoles(user.getRoles()));
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userDao.addUser(user);
-    }
-
-    @Override
-    @Transactional
-    public void updateUserWithRawRoles(User user) {
-        user.setRoles(resolveRoles(user.getRoles()));
-
-        if (user.getPassword() == null || user.getPassword().isBlank()) {
-            User existingUser = userDao.getById(user.getId());
-            user.setPassword(existingUser.getPassword());
-        } else {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
-
-        userDao.updateUser(user);
+        return findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
 
-    private Set<Role> resolveRoles(Set<Role> roles) {
-        return roles.stream()
-                .map(r -> roleService.findById(r.getId()))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-    }
 }
+
+
 

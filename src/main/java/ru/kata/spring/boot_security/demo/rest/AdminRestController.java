@@ -40,33 +40,38 @@ public class AdminRestController {
 
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getById(@PathVariable long id) {
-        return ResponseEntity.ok(userService.getById(id));
+        return userService.getById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/users")
     public ResponseEntity<User> createUser(@RequestBody User user) {
-        userService.addUserWithRawRoles(user);
+        userService.addUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @PutMapping("/users/{id}")
     public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody User user) {
         user.setId(id);
-        userService.updateUserWithRawRoles(user);
+        userService.updateUser(user);
         return ResponseEntity.ok(user);
     }
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable long id) {
-        userService.deleteUser(userService.getById(id));
-        return ResponseEntity.noContent().build();
+        return userService.getById(id)
+                .map(user -> {
+                    userService.deleteUser(user);
+                    return ResponseEntity.noContent().<Void>build(); // явное указание типа
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
+
 
     @GetMapping("/roles")
     public ResponseEntity<List<Role>> getAllRoles() {
         return ResponseEntity.ok(roleService.getRoles());
     }
-
-
-
 }
+

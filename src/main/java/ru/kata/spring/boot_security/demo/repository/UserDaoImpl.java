@@ -6,6 +6,7 @@ import ru.kata.spring.boot_security.demo.model.User;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -35,8 +36,8 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User getById(long id) {
-        return em.find(User.class, id);
+    public Optional<User> getById(long id) {
+        return Optional.ofNullable(em.find(User.class, id));
     }
 
     @Override
@@ -45,12 +46,13 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User findByUsername(String username) {
-        return em.createQuery("select u from User u where u.username = :username", User.class)
+    public Optional<User> findByUsername(String username) {
+        return em.createQuery(
+                        "SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username", User.class)
                 .setParameter("username", username)
                 .getResultStream()
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
+
 
 }

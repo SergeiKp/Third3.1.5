@@ -19,8 +19,9 @@ public class UserRestController {
     }
 
     @GetMapping
-    public ResponseEntity<User> getCurrentUser(Principal principal){
-        User user = userService.findUserByUsername(principal.getName());
-        return ResponseEntity.ok(user);
+    public ResponseEntity<User> getCurrentUser(Principal principal) {
+        return userService.findUserByUsername(principal.getName())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
